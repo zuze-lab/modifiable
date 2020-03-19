@@ -23,9 +23,6 @@
   },
   "author": "Adam Jenkins",
   "license": "ISC",
-  "dependencies": {
-    "property-expr": "^2.0.2"
-  },
   "devDependencies": {
     "@babel/core": "^7.6.0",
     "@babel/plugin-transform-runtime": "^7.6.0",

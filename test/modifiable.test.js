@@ -50,7 +50,7 @@ describe('modifiable', () => {
     const state = { first: 'jim', second: 'fred' };
 
     const fn = jest.fn(() => state => state);
-    const modifiers = [[fn, ['someContext', 'path.first']]];
+    const modifiers = [[fn, ['someContext', 'path']]];
     const m = modifiable(state, { modifiers });
     expect(fn).toHaveBeenCalled();
     fn.mockClear();
@@ -59,12 +59,10 @@ describe('modifiable', () => {
     m.setContext({ someContext: 'val' });
     expect(fn).toHaveBeenCalled();
     fn.mockClear();
-    m.setContext({ path: 'val' });
-    expect(fn).not.toHaveBeenCalled();
-    m.setContext({ path: { first: 'fred' } });
+    m.setContext({ path: 'fred' });
     expect(fn).toHaveBeenCalled();
     fn.mockClear();
-    m.setContext({ path: { first: 'fred', second: 'joe' } });
+    m.setContext({ path: 'fred' });
     expect(fn).not.toHaveBeenCalled();
   });
 

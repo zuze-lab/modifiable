@@ -1,5 +1,3 @@
-import { getter } from 'property-expr';
-
 export const identity = f => f;
 
 export const identityFn = f => () => f;
@@ -13,7 +11,7 @@ export const shouldRun = (deps = [], next, last) =>
   !deps.length || diffAt(deps, next, last);
 
 const checkAt = (pathFn, arg) =>
-  typeof pathFn === 'string' ? getter(pathFn, true)(arg) : pathFn(arg);
+  typeof pathFn === 'string' ? arg[pathFn] : pathFn(arg);
 
 // determine if objects are shallow equal at the paths/functions given
 export const diffAt = (paths, next, last) =>
