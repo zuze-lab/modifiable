@@ -30,7 +30,7 @@ A little like the super cool [immer](https://www.npmjs.com/package/immer), but m
 - Create a modifiable with a state (any value) and optionally modifiers and initial context.
 - State is changed by setting *context* - a plain JS object - on the modifiable, however it can also be changed by adding/removing modifiers (using [modify](#modify))
 
-- A [modifier](#modifierfunction) is a higher order function that accepts a single argument - *context* - and returns a function ([modification function](#modificationfunction)) that accepts the last modified state and returns the next modified state.
+- A [modifier](#types) is a higher order function that accepts a single argument - *context* - and returns a function ([modification function](#types)) that accepts the last modified state and returns the next modified state.
 
 - A modifier SHOULD specify it's "dependencies" - i.e. keys of the context.
 
@@ -46,24 +46,22 @@ A little like the super cool [immer](https://www.npmjs.com/package/immer), but m
 
   
 ## API
-Create a new modifiable by 
-```js
-modifiable<T,R>(state: T, options?:{modifiers:Modifier<T,R>[],context:R})
-```
 
-### - <a name="subscribe"></a>`subscribe(Subscriber: (state: T) => void): () => void`
-Subscribes to changes in the state and returns an unsubscribe function. (identical to function of the same name on a redux store)
+- **<a name="modifiable"></a>`modifiable<T,R>(state: T, options?:{modifiers:Modifier<T,R>[],context:R}): Modifiable`**
 
-### - <a name="getstate"></a> `getState(): T`
+- **<a name="subscribe"></a>`subscribe(Subscriber: (state: T) => void): () => void`**
+Subscribes to changes in the state and returns an unsubscribe function. (identical to function of the same name on a redux store)**
+
+- **<a name="getstate"></a> `getState(): T`**
 Returns the modified state (identical to function of same name on a redux store)
 
-### - <a name="setcontext"></a> `setContext(Partial<R> | (existing: R) => R)`
+- **<a name="setcontext"></a> `setContext(Partial<R> | (existing: R) => R)`**
 Just like React's `setState`.  Causes necessary ModifiedFunctions to run. Setting context is the primary way to change a modifiable's state. (Think of it as redux `dispatch`). 
 
-### - <a name="modify"></a> `modify(ModifierFunction, deps?: string[]): () => void`
+- **<a name="modify"></a> `modify(ModifierFunction, deps?: string[]): () => void`**
 Adds a modifier at run time. Modifiers added a runtime will be run immediately. Returns a function to remove the `ModifierFunction`. Adding/removing modifiers are the second way to change a modifiable's state.
 
-### - <a name="clear"></a> `clear(context?:R)`
+- **<a name="clear"></a> `clear(context?:R)`**
 Removes all modifiers and (optionally) sets the context. If no context is supplied, context won't be changed.
 
 ## Other Stuff
@@ -84,9 +82,22 @@ myModifiable.setState({...someContext});
 ```
 
 ## Types
-### <a name="modifier"></a> `Modifier<T,R>: [ModifierFunction<T,R>, dependencies: string[]]`
-### <a name="modifierfunction"></a> `ModifierFunction<T,R>: (context: R, state: R) => ModificationFn<T>`
-### <a name="modificationfunction"></a> `ModificationFn<T>: (state: T) => nextState: T`
+```js
+
+interface Modifiable<T,R> {
+    subscribe: (subscriber: (state: T) => void) => () => void;
+    getState: () => T;
+    setContext: (ctx: Partial<R> | (existing: R) => R): boolean;
+    modify: (modifier: ModifierFunction<T,R>, deps?: string[]) => () => void;
+    clear: (context?: Partial<R> | (existing: R) => R)
+}
+
+type Modifier<T,R> = [ ModifierFunction<T,R>, string[] ];
+
+type ModifierFunction<T,R> = (context: R, state: T) => ModificationFunction<T>;
+
+type ModificationFunction<T> = (state: T) => T;
+```
 
 ## Small
 Core implementation of `modifiable`, minified and gzipped, is about 600 *bytes*.
