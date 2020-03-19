@@ -30,7 +30,7 @@ A little like the super cool [immer](https://www.npmjs.com/package/immer), but m
 - Create a modifiable with a state (any value) and optionally modifiers and initial context.
 - State is changed by setting *context* - a plain JS object - on the modifiable, however it can also be changed by adding/removing modifiers (using [modify](#modify))
 
-- A [modifier](#modifierfunction) is a higher order function that accepts a single argument - *context* - and returns a function ([modification function](#modificationfunctions)) that accepts the last modified state and returns the next modified state.
+- A [modifier](#modifierfunction) is a higher order function that accepts a single argument - *context* - and returns a function ([modification function](#modificationfunction)) that accepts the last modified state and returns the next modified state.
 
 - A modifier SHOULD specify it's "dependencies" - i.e. keys of the context.
 
