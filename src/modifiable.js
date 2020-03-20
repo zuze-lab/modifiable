@@ -1,16 +1,31 @@
 import { patch, shouldRun, identity } from './utils';
 
-export const modifiable = (state, options = {}) => {
-  const modifiers = (options.modifiers || []).reduce(
-    (acc, [mod, deps]) => acc.set(mod, { deps }),
+const makeMap = (what = []) =>
+  what.reduce(
+    (acc, w) =>
+      acc.set(...(Array.isArray(w) ? [w[0], { deps: w[1] }] : [w, {}])),
     new Map()
   );
+
+export const modifiable = (state, options = {}) => {
+  const modifiers = makeMap(options.modifiers);
+  const effects = makeMap(options.effects);
   const subscribers = new Set();
 
   // state variables
   let modified = state;
   let context = options.context || {};
   let lastContext;
+
+  const runEffects = ctx => {
+    [...effects.entries()].forEach(
+      ([fn, deps]) =>
+        shouldRun(deps, ctx, lastContext) && setContext(fn(context) || identity)
+    );
+    return identity;
+  };
+
+  modifiers.set(runEffects, {});
 
   const update = () => {
     // apply all modifier fns sequentially against original state
@@ -46,6 +61,10 @@ export const modifiable = (state, options = {}) => {
   return {
     setContext,
     getState,
+    effect: (fn, deps) => {
+      effects.set(fn, deps);
+      return () => effects.delete(fn);
+    },
     subscribe: subscriber => {
       subscriber(modified);
       subscribers.add(subscriber);
