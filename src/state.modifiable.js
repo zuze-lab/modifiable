@@ -1,5 +1,5 @@
 // Simple state modifiable - where the context is the state (but it can still be modified)
-import { modifiable } from './modifiable';
+import modifiable from './modifiable';
 import { identityFn } from './utils';
 
 export const stateModifiable = (state, ...modifiers) => {

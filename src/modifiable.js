@@ -1,19 +1,7 @@
-import { patch, shouldRun, identity, effect } from './utils';
+import { patch, shouldRun, identity, deps, addModifiers } from './utils';
 
-const deps = (deps = []) => ({ deps: Array.isArray(deps[0]) ? deps[0] : deps });
-
-const addModifier = map => mod => {
-  const [fn, ...m] = Array.isArray(mod) ? mod : [mod];
-  map.set(fn, deps(m));
-};
-
-export const modifiable = (state, options = {}) => {
-  const modifiers = new Map();
-  (options.modifiers || []).forEach(addModifier(modifiers));
-  (options.effects || []).forEach(e => {
-    const [fn, ...deps] = Array.isArray(e) ? e : [e];
-    addModifier(modifiers)([effect(fn), ...deps]);
-  });
+export default (state, options = {}) => {
+  const modifiers = addModifiers(options.modifiers || []);
 
   const subscribers = new Set();
 
@@ -67,7 +55,6 @@ export const modifiable = (state, options = {}) => {
   return {
     setContext,
     getState,
-    effect: (...args) => modify(effect(args.shift()), ...args),
     subscribe: subscriber => {
       subscriber(modified);
       subscribers.add(subscriber);

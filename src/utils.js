@@ -18,4 +18,14 @@ export const diffAt = (paths, next, last) =>
   next !== last &&
   (!last || paths.some(path => checkAt(path, next) !== checkAt(path, last)));
 
+export const deps = deps => ({ deps: Array.isArray(deps[0]) ? deps[0] : deps });
+
+export const addModifiers = (mods, map = new Map()) =>
+  mods.reduce((acc, m) => addModifier(m, acc), map);
+
+export const addModifier = (mod, map) => {
+  const [fn, ...m] = Array.isArray(mod) ? mod : [mod];
+  return map.set(fn, deps(m));
+};
+
 export const effect = fn => (...args) => (fn(...args), identity);
