@@ -43,7 +43,7 @@ module.exports = {
   },
   overrides: [
     {
-      files: ['**/test/**/*.js'],
+      files: ['**/test/**/*.js','test.utils.js'],
       env: {
         es6: true,
         jest: true,

@@ -7,7 +7,7 @@ export const patch = (next, what) =>
   typeof next === 'function' ? next(what) : { ...what, ...next };
 
 // used by modifiable to determine if a modifier function should run based on dependencies
-export const shouldRun = (deps = [], next, last) =>
+export const shouldRun = (deps, next, last) =>
   !deps.length || diffAt(deps, next, last);
 
 const checkAt = (pathFn, arg) =>
@@ -17,3 +17,5 @@ const checkAt = (pathFn, arg) =>
 export const diffAt = (paths, next, last) =>
   next !== last &&
   (!last || paths.some(path => checkAt(path, next) !== checkAt(path, last)));
+
+export const effect = fn => (...args) => (fn(...args), identity);

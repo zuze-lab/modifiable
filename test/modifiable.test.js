@@ -1,6 +1,8 @@
 import { createSelector } from 'reselect';
 import { modifiable } from '../src/modifiable';
-import { effect } from '../src/utils';
+import { runAllTimers } from '../test.utils';
+
+jest.useFakeTimers();
 
 describe('modifiable', () => {
   it('should construct', () => {
@@ -121,5 +123,57 @@ describe('modifiable', () => {
     expect(mock).not.toHaveBeenCalled();
     m.setContext(1);
     expect(mock).toHaveBeenCalledWith('c');
+  });
+
+  it('should run an effect', async () => {
+    const modified = 'fred';
+    const modifiers = [
+      [jest.fn(ctx => state => (ctx.someKey ? modified : state)), 'someKey'],
+    ];
+
+    // this effect will only run when `someVal` changes
+    const myEffect = [
+      async (ctx, setContext) => {
+        try {
+          await new Promise((res, rej) => (ctx.someVal ? res() : rej()));
+          setContext({ someKey: true });
+        } catch (err) {
+          setContext({ someKey: false });
+        }
+      },
+      'someVal',
+    ];
+    const state = 'jim';
+    const m = modifiable(state, { modifiers });
+    expect(m.getState()).not.toBe(modified);
+
+    // set someVal context
+    m.setContext({ someVal: 10 });
+    // doesn't affect state
+    expect(m.getState()).not.toBe(modified);
+
+    // add the effect
+    m.effect(...myEffect);
+
+    // still doesn't affect state (async)
+    expect(m.getState()).not.toBe(modified);
+
+    // skip the async
+    await runAllTimers();
+
+    // state affected
+    expect(m.getState()).toBe(modified);
+
+    // update someVal - effect will run
+    m.setContext({ someVal: undefined });
+
+    // async so it still hasn't affected state
+    expect(m.getState()).toBe(modified);
+
+    // skip the async
+    await runAllTimers();
+
+    // state affected
+    expect(m.getState()).not.toBe(modified);
   });
 });
