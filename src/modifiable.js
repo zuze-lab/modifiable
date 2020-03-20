@@ -1,9 +1,11 @@
 import { patch, shouldRun, identity } from './utils';
 
+const deps = (deps = []) => ({ deps: Array.isArray(deps[0]) ? deps[0] : deps });
+
 export const modifiable = (state, options = {}) => {
   const modifiers = (options.modifiers || []).reduce((acc, mod) => {
     const m = Array.isArray(mod) ? mod : [mod];
-    return acc.set(m.shift(), { deps: Array.isArray(m[0]) ? m[0] : m });
+    return acc.set(m.shift(), deps(m));
   }, new Map());
   const subscribers = new Set();
 
@@ -51,8 +53,11 @@ export const modifiable = (state, options = {}) => {
       subscribers.add(subscriber);
       return () => subscribers.delete(subscriber);
     },
-    modify: (modifier, deps) => {
-      modifiers.set(modifier, { deps, fn: modifier(context) });
+    modify: (modifier, ...dependencies) => {
+      modifiers.set(modifier, {
+        ...deps(dependencies),
+        fn: modifier(context),
+      });
       update();
       return () => {
         modifiers.delete(modifier), update();
