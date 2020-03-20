@@ -84,7 +84,7 @@ myModifiable.setState({...someContext});
 ```
 
 ## Types
-### <a name="modifier"></a> `Modifier<T,R>: [ModifierFunction<T,R>, dependencies: string[]]`
+### <a name="modifier"></a> `Modifier<T,R>: [ModifierFunction<T,R>, ...dependencies: Array<string | (context) => boolean>]`
 ### <a name="modifierfunction"></a> `ModifierFunction<T,R>: (context: R, state: R) => ModificationFn<T>`
 ### <a name="modificationfunction"></a> `ModificationFn<T>: (state: T) => nextState: T`
 

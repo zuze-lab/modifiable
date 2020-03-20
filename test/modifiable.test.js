@@ -1,5 +1,6 @@
 import { createSelector } from 'reselect';
 import { modifiable } from '../src/modifiable';
+import { effect } from '../src/utils';
 
 describe('modifiable', () => {
   it('should construct', () => {
@@ -46,7 +47,7 @@ describe('modifiable', () => {
     expect(m.getState()).toBe(modified);
   });
 
-  it('should accept a modifier that has string dependencies', () => {
+  it('should accept a modifier that has string dependencies (array)', () => {
     const state = { first: 'jim', second: 'fred' };
 
     const fn = jest.fn(() => state => state);
@@ -66,11 +67,31 @@ describe('modifiable', () => {
     expect(fn).not.toHaveBeenCalled();
   });
 
+  it('should accept a modifier that has string dependencies', () => {
+    const state = { first: 'jim', second: 'fred' };
+
+    const fn = jest.fn(() => state => state);
+    const modifiers = [[fn, 'someContext', 'path']];
+    const m = modifiable(state, { modifiers });
+    expect(fn).toHaveBeenCalled();
+    fn.mockClear();
+    m.setContext({ key: 'val' });
+    expect(fn).not.toHaveBeenCalled();
+    m.setContext({ someContext: 'val' });
+    expect(fn).toHaveBeenCalled();
+    fn.mockClear();
+    m.setContext({ path: 'fred' });
+    expect(fn).toHaveBeenCalled();
+    fn.mockClear();
+    m.setContext({ path: 'fred' });
+    expect(fn).not.toHaveBeenCalled();
+  });
+
   it('should accept a modifier that has function dependencies', () => {
     const state = { first: 'jim', second: 'fred' };
 
     const fn = jest.fn(() => state => state);
-    const modifiers = [[fn, [({ key1 }) => key1 && key1[0]]]];
+    const modifiers = [[fn, ({ key1 }) => key1 && key1[0]]];
     const m = modifiable(state, { modifiers });
     expect(fn).toHaveBeenCalled();
     fn.mockClear();

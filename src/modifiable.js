@@ -1,10 +1,10 @@
 import { patch, shouldRun, identity } from './utils';
 
 export const modifiable = (state, options = {}) => {
-  const modifiers = (options.modifiers || []).reduce(
-    (acc, [mod, deps]) => acc.set(mod, { deps }),
-    new Map()
-  );
+  const modifiers = (options.modifiers || []).reduce((acc, mod) => {
+    const m = Array.isArray(mod) ? mod : [mod];
+    return acc.set(m.shift(), { deps: Array.isArray(m[0]) ? m[0] : m });
+  }, new Map());
   const subscribers = new Set();
 
   // state variables
