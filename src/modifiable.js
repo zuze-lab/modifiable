@@ -2,11 +2,19 @@ import { patch, shouldRun, identity, effect } from './utils';
 
 const deps = (deps = []) => ({ deps: Array.isArray(deps[0]) ? deps[0] : deps });
 
+const addModifier = map => mod => {
+  const [fn, ...m] = Array.isArray(mod) ? mod : [mod];
+  map.set(fn, deps(m));
+};
+
 export const modifiable = (state, options = {}) => {
-  const modifiers = (options.modifiers || []).reduce((acc, mod) => {
-    const m = Array.isArray(mod) ? mod : [mod];
-    return acc.set(m.shift(), deps(m));
-  }, new Map());
+  const modifiers = new Map();
+  (options.modifiers || []).forEach(addModifier(modifiers));
+  (options.effects || []).forEach(e => {
+    const [fn, ...deps] = Array.isArray(e) ? e : [e];
+    addModifier(modifiers)([effect(fn), ...deps]);
+  });
+
   const subscribers = new Set();
 
   // state variables
