@@ -40,21 +40,22 @@ export default (state, options = {}) => {
   // run on init
   run();
 
+  const remove = modifier => (modifiers.delete(modifier), update());
+
   const modify = (modifier, ...dependencies) => {
     modifiers.set(modifier, {
       ...deps(dependencies),
       fn: modifier(context, setContext, getState),
     });
     update();
-    return () => {
-      modifiers.delete(modifier), update();
-    };
+    return () => remove(modifier);
   };
 
   // api
   return {
     setContext,
     getState,
+    remove,
     subscribe: subscriber => {
       subscriber(modified);
       subscribers.add(subscriber);
