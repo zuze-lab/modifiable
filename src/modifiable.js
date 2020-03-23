@@ -19,10 +19,7 @@ export default (state, options = {}) => {
     return true;
   };
 
-  const setContext = next => {
-    context = patch(next, context, options.pure);
-    return context === lastContext ? false : run();
-  };
+  const setContext = next => ((context = patch(next, context)), run());
 
   const getState = () => modified;
 

@@ -1,14 +1,10 @@
-import shallow from 'shallowequal';
-
 export const identity = f => f;
 
 export const identityFn = f => () => f;
 
 // like react's setState
-export const patch = (next, what, pure = true) => {
-  const then = typeof next === 'function' ? next(what) : { ...what, ...next };
-  return !pure ? then : shallow(what, then) ? what : then;
-};
+export const patch = (next, what) =>
+  typeof next === 'function' ? next(what) : { ...what, ...next };
 
 // used by modifiable to determine if a modifier function should run based on dependencies
 export const shouldRun = (deps, next, last) =>
@@ -31,5 +27,3 @@ export const addModifier = (mod, map) => {
   const [fn, ...m] = Array.isArray(mod) ? mod : [mod];
   return map.set(fn, deps(m));
 };
-
-export const effect = fn => (...args) => (fn(...args), identity);

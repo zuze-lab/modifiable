@@ -43,7 +43,6 @@ A little like the super cool [immer](https://www.npmjs.com/package/immer), but m
 - All modification functions returned from modifiers will then be applied sequentially to the state
 
 - Just like redux, modifier and modification functions, must be pure
-
   
 ## API
 Create a new modifiable by 
