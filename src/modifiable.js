@@ -1,7 +1,13 @@
-import { patch, identity, createModifiers, createModifier } from './utils';
+import {
+  patch,
+  identity,
+  createModifiers,
+  createModifier,
+  select,
+} from './utils';
 
 export default (state, options = {}) => {
-  const newModifiers = createModifiers(options.modifiers || []);
+  const modifiers = createModifiers(options.modifiers || []);
   const subscribers = new Set();
 
   // state variables
@@ -9,18 +15,21 @@ export default (state, options = {}) => {
   let context = options.context || {};
 
   const update = () => {
-    modified = newModifiers.reduce((acc, m) => m[1](acc), state);
+    modified = modifiers.reduce((acc, m) => m[1](acc), state);
 
     // notify subscribers
     subscribers.forEach(s => s(modified));
   };
 
-  const setContext = next => ((context = patch(next, context)), run());
+  const setContext = next => {
+    const nextContext = patch(next, context);
+    if (nextContext !== context) (context = nextContext), run();
+  };
 
   const getState = () => modified;
 
   const run = () =>
-    newModifiers.reduce(
+    modifiers.reduce(
       (acc, m) => (m[0](context, setContext, getState) ? ++acc : acc),
       0
     ) && update();
@@ -29,27 +38,26 @@ export default (state, options = {}) => {
   run();
 
   const remove = modifier => {
-    const i = newModifiers.indexOf(modifier);
-    if (i !== -1) newModifiers.splice(i, 1), update();
+    const i = modifiers.indexOf(modifier);
+    if (i !== -1) modifiers.splice(i, 1), update();
   };
 
   // api
   return {
     setContext,
     getState,
-    remove,
-    subscribe(subscriber) {
-      subscriber(modified);
+    subscribe() {
+      const subscriber = select.apply(null, arguments)(modified);
       subscribers.add(subscriber);
       return () => subscribers.delete(subscriber);
     },
     modify() {
       const m = createModifier.apply(null, arguments);
-      newModifiers.push(m), run();
+      modifiers.push(m), run();
       return () => remove(m);
     },
     clear: (ctx = identity) => {
-      newModifiers.splice(0);
+      modifiers.splice(0);
       setContext(ctx) || update();
     },
   };

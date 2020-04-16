@@ -2,37 +2,32 @@ export const identity = f => f;
 
 export const identityFn = f => () => f;
 
-export const fromArgs = args => Array.prototype.slice.call(args);
+const fromArgs = args => Array.prototype.slice.call(args);
 
 // like react's setState
 export const patch = (next, what) =>
   typeof next === 'function' ? next(what) : Object.assign({}, what, next);
 
-// just like createSelector from reselect
+// identical signature to createSelector from reselect
+const defaultMemoize = (a, b) => a === b;
+
 export function select() {
   const args = fromArgs(arguments);
   const fn = args.pop();
+  const mem = fn.memoize || defaultMemoize;
+  const deps = Array.isArray(args[0]) ? args[0] : args;
+  const real = deps.length ? deps : [identity];
   const last = [];
-  return modified =>
-    !args.length
-      ? fn(modified)
-      : args.reduce((acc, d, idx) => {
-          const val = checkAt(d, modified);
-          return val === last[idx] ? acc : ((last[idx] = val), true);
-        }, false) && fn.apply(null, last);
+  const selector = modified => {
+    real.reduce((acc, d, idx) => {
+      const val = checkAt(d, modified);
+      return mem(val, last[idx]) ? acc : ((last[idx] = val), true);
+    }, false) && fn.apply(null, last.concat(deps.length ? modified : []));
+    // cool
+    return selector;
+  };
+  return selector;
 }
-
-// dependencies - the subscriber function is called if any of the dependencies change
-// interesting idea, not necessary now, let's save the bytes
-// export function subscribe() {
-//   const args = fromArgs(arguments);
-//   const fn = args.shift();
-//   let last;
-//   return modified => {
-//     if (!args.length || shouldRun(args, modified, last)) fn(modified);
-//     last = modified;
-//   };
-// }
 
 // used by modifiable to determine if a modifier function should run based on dependencies
 export const shouldRun = (deps, next, last) =>

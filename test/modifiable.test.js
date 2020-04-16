@@ -1,4 +1,4 @@
-import { modifiable, select } from '../src';
+import { modifiable } from '../src';
 
 describe('modifiable', () => {
   it('should construct', () => {
@@ -22,6 +22,8 @@ describe('modifiable', () => {
     const undo = m.modify(() => modificationFn);
     expect(m.getState()).toBe('fred');
     undo();
+    expect(m.getState()).toBe(state);
+    undo(); // no change or error when calling a second time
     expect(m.getState()).toBe(state);
   });
 
@@ -102,15 +104,15 @@ describe('modifiable', () => {
     expect(fn).toHaveBeenCalled();
   });
 
-  it('should work with selectors', () => {
+  it('should work with selectors (1)', () => {
     const mock = jest.fn();
-    const selector = select(state => state.first[0], mock);
+    const selector = [state => state.first[0], mock];
     const state = { first: ['a', 'b'] };
     const fn = jest.fn(state => state);
     const modifiers = [() => fn];
     const m = modifiable(state, { modifiers });
-    m.subscribe(selector);
-    expect(mock).toHaveBeenCalledWith('a');
+    m.subscribe(...selector);
+    expect(mock).toHaveBeenCalledWith('a', state);
     mock.mockClear();
     fn.mockReturnValue({ first: ['a', 'b', 'c'] });
     m.setContext({ a: 1 });
@@ -118,24 +120,25 @@ describe('modifiable', () => {
     fn.mockReturnValue({ first: ['c', 'b', 'c'] });
     expect(mock).not.toHaveBeenCalled();
     m.setContext({ a: 2 });
-    expect(mock).toHaveBeenCalledWith('c');
+    expect(mock).toHaveBeenCalledWith('c', { first: ['c', 'b', 'c'] });
   });
 
-  // it('subscribe should accept dependencies', () => {
-  //   const mock = jest.fn();
-  //   const state = { first: ['a', 'b'] };
-  //   const fn = jest.fn(state => state);
-  //   const modifiers = [() => fn];
-  //   const m = modifiable(state, { modifiers });
-  //   m.subscribe(mock, state => state.first[0]);
-  //   expect(mock).toHaveBeenCalledWith(state);
-  //   mock.mockClear();
-  //   fn.mockReturnValue({ first: ['a', 'b', 'c'] });
-  //   m.setContext({ a: 1 });
-  //   expect(mock).not.toHaveBeenCalled();
-  //   fn.mockReturnValue({ first: ['c', 'b', 'c'] });
-  //   expect(mock).not.toHaveBeenCalled();
-  //   m.setContext({ a: 2 });
-  //   expect(mock).toHaveBeenCalledWith(fn.getMockImplementation()());
-  // });
+  it('should work with selectors (2)', () => {
+    const mock = jest.fn();
+    const selector = [[state => state.first[0]], mock];
+    const state = { first: ['a', 'b'] };
+    const fn = jest.fn(state => state);
+    const modifiers = [() => fn];
+    const m = modifiable(state, { modifiers });
+    m.subscribe(...selector);
+    expect(mock).toHaveBeenCalledWith('a', state);
+    mock.mockClear();
+    fn.mockReturnValue({ first: ['a', 'b', 'c'] });
+    m.setContext({ a: 1 });
+    expect(mock).not.toHaveBeenCalled();
+    fn.mockReturnValue({ first: ['c', 'b', 'c'] });
+    expect(mock).not.toHaveBeenCalled();
+    m.setContext({ a: 2 });
+    expect(mock).toHaveBeenCalledWith('c', { first: ['c', 'b', 'c'] });
+  });
 });
