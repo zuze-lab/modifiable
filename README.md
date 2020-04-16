@@ -50,8 +50,10 @@ Create a new modifiable by
 modifiable<T,R>(state: T, options?:{modifiers:Modifier<T,R>[],context:R})
 ```
 
-### - <a name="subscribe"></a>`subscribe(Subscriber: (state: T) => void): () => void`
+### - <a name="subscribe"></a>`subscribe(Subscriber: (state: T) => void, ...deps?: Dependency[]): () => void`
 Subscribes to changes in the state and returns an unsubscribe function. (identical to function of the same name on a redux store)
+
+By specifying dependencies this subscriber will only get called when the dependencies are different.
 
 ### - <a name="getstate"></a> `getState(): T`
 Returns the modified state (identical to function of same name on a redux store)
@@ -59,7 +61,7 @@ Returns the modified state (identical to function of same name on a redux store)
 ### - <a name="setcontext"></a> `setContext(Partial<R> | (existing: R) => R)`
 Just like React's `setState`.  Causes necessary ModifiedFunctions to run. Setting context is the primary way to change a modifiable's state. (Think of it as redux `dispatch`). 
 
-### - <a name="modify"></a> `modify(ModifierFunction, deps?: string[]): () => void`
+### - <a name="modify"></a> `modify(ModifierFunction, ...deps?: Dependency[]): () => void`
 Adds a modifier at run time. Modifiers added a runtime will be run immediately. Returns a function to remove the `ModifierFunction`. Adding/removing modifiers are the second way to change a modifiable's state.
 
 ### - <a name="clear"></a> `clear(context?:R)`

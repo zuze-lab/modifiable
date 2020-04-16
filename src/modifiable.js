@@ -1,4 +1,12 @@
-import { patch, shouldRun, identity, deps, addModifiers } from './utils';
+import {
+  patch,
+  shouldRun,
+  identity,
+  deps,
+  addModifiers,
+  subscribe,
+  fromArgs,
+} from './utils';
 
 export default (state, options = {}) => {
   const modifiers = addModifiers(options.modifiers || []);
@@ -12,10 +20,12 @@ export default (state, options = {}) => {
 
   const update = () => {
     // apply all modifier fns sequentially against original state
-    modified = [...modifiers.values()].reduce((acc, { fn }) => fn(acc), state);
+    const values = [];
+    modifiers.forEach(v => values.push(v));
+    modified = values.reduce((acc, { fn }) => fn(acc), state);
 
     // notify subscribers
-    [...subscribers].forEach(s => s(modified));
+    subscribers.forEach(s => s(modified));
     return true;
   };
 
@@ -24,12 +34,11 @@ export default (state, options = {}) => {
   const getState = () => modified;
 
   const run = () => {
-    const toRun = [...modifiers.entries()]
-      // determine which modifiers need to be run based on their dependencies
-      .filter(m => shouldRun(m[1].deps, context, lastContext))
-      // run them and set the functions on the modifier map
-      .map(([fn, a]) => (a.fn = fn(context, setContext, getState)));
-
+    const toRun = [];
+    modifiers.forEach(
+      (v, fn) => shouldRun(v.deps, context, lastContext) && toRun.push([fn, v])
+    );
+    toRun.forEach(a => (a[1].fn = a[0](context, setContext, getState)));
     lastContext = context;
     return toRun.length && update();
   };
@@ -39,24 +48,29 @@ export default (state, options = {}) => {
 
   const remove = modifier => (modifiers.delete(modifier), update());
 
-  const modify = (modifier, ...dependencies) => {
-    modifiers.set(modifier, {
-      ...deps(dependencies),
-      fn: modifier(context, setContext, getState),
-    });
+  function modify() {
+    const args = fromArgs(arguments);
+    const modifier = args.shift();
+    modifiers.set(
+      modifier,
+      Object.assign(deps(args), {
+        fn: modifier(context, setContext, getState),
+      })
+    );
     update();
     return () => remove(modifier);
-  };
+  }
 
   // api
   return {
     setContext,
     getState,
     remove,
-    subscribe: subscriber => {
-      subscriber(modified);
-      subscribers.add(subscriber);
-      return () => subscribers.delete(subscriber);
+    subscribe() {
+      const memoed = subscribe.apply(null, arguments);
+      memoed(modified);
+      subscribers.add(memoed);
+      return () => subscribers.delete(memoed);
     },
     modify,
     clear: (ctx = identity) => {

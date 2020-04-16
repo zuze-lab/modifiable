@@ -701,13 +701,6 @@
   dependencies:
     regenerator-runtime "^0.13.4"
 
-"@babel/runtime@^7.8.7":
-  version "7.9.0"
-  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.9.0.tgz#337eda67401f5b066a6f205a3113d4ac18ba495b"
-  integrity sha512-cTIudHnzuWLS56ik4DnRnqqNf8MkdUzV4iFFI1h7Jo9xvrpQROYaAnaSd2mHLQAzzZAPfATynX5ord6YlNYNMA==
-  dependencies:
-    regenerator-runtime "^0.13.4"
-
 "@babel/template@^7.7.4", "@babel/template@^7.8.3", "@babel/template@^7.8.6":
   version "7.8.6"
   resolved "https://registry.yarnpkg.com/@babel/template/-/template-7.8.6.tgz#86b22af15f828dfb086474f964dcc3e39c43ce2b"
@@ -1082,6 +1075,11 @@
   dependencies:
     lodash.unescape "4.0.1"
     semver "5.5.0"
+
+"@zuze/interpolate@^6.1.1":
+  version "6.1.1"
+  resolved "https://registry.yarnpkg.com/@zuze/interpolate/-/interpolate-6.1.1.tgz#f7d7ab3f56e9de2fc24f9cf64e2be424537cd63a"
+  integrity sha512-Z5UHpEdJDGV5vGOfm4Lwza0frKueuFeKj9S3CoF3regxmNS537tRehLYlAQtk59kUftAzhCg4a5GcyVnutXVSg==
 
 abab@^2.0.0:
   version "2.0.3"
