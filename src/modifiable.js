@@ -30,7 +30,7 @@ export default (state, options = {}) => {
 
   const run = () =>
     modifiers.reduce(
-      (acc, m) => (m[0](context, setContext, getState) ? ++acc : acc),
+      (acc, m) => (m[0](context, setContext, getState) ? acc + 1 : acc),
       0
     ) && update();
 
