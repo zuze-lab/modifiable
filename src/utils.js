@@ -58,9 +58,9 @@ export function createModifier() {
   const deps = Array.isArray(f[0]) ? f[0] : f;
   let last;
   const arr = [
-    (context, setContext, getState) => {
+    (context, ...rest) => {
       const r = !last || !deps.length || shouldRun(deps, context, last);
-      if (r) arr[1] = mod(context, setContext, getState);
+      if (r) arr[1] = mod(context, ...rest);
       last = context;
       return r;
     },
