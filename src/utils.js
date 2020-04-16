@@ -48,12 +48,7 @@ export const createModifiers = modifiers =>
 
 export function createModifier() {
   const args = fromArgs(arguments);
-
-  // args = [modifier]
-  // args = [ [modifier, dep1,dep2] ]
-  // args = [ [modifier, [dep1,dep2] ] ]
-
-  const f = Array.isArray(args[0]) ? args[0] : [args[0]];
+  const f = Array.isArray(args[0]) ? args[0] : args;
   const mod = f.shift();
   const deps = Array.isArray(f[0]) ? f[0] : f;
   let last;
