@@ -1,6 +1,6 @@
 {
   "name": "@zuze/modifiable",
-  "version": "5.0.0",
+  "version": "6.0.0",
   "description": "Declarative state manipulation for handling transient/reversible modifications",
   "main": "build/cjs/index.js",
   "module": "build/esm/index.js",
@@ -24,9 +24,6 @@
   },
   "author": "Adam Jenkins",
   "license": "ISC",
-  "dependencies": {
-    "@babel/runtime": "^7.8.7"
-  },
   "devDependencies": {
     "@babel/core": "^7.6.0",
     "@babel/plugin-transform-runtime": "^7.6.0",
@@ -43,7 +40,6 @@
     "eslint-plugin-prettier": "^3.1.0",
     "jest": "^25.1.0",
     "prettier": "^1.18.2",
-    "reselect": "^4.0.0",
     "rollup": "^1.21.4",
     "rollup-plugin-babel": "^4.3.3"
   }
