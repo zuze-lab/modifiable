@@ -23,15 +23,16 @@ export function select() {
 }
 
 // dependencies - the subscriber function is called if any of the dependencies change
-export function subscribe() {
-  const args = fromArgs(arguments);
-  const fn = args.shift();
-  let last;
-  return modified => {
-    if (!args.length || shouldRun(args, modified, last)) fn(modified);
-    last = modified;
-  };
-}
+// interesting idea, not necessary now, let's save the bytes
+// export function subscribe() {
+//   const args = fromArgs(arguments);
+//   const fn = args.shift();
+//   let last;
+//   return modified => {
+//     if (!args.length || shouldRun(args, modified, last)) fn(modified);
+//     last = modified;
+//   };
+// }
 
 // used by modifiable to determine if a modifier function should run based on dependencies
 export const shouldRun = (deps, next, last) =>
@@ -45,12 +46,27 @@ export const diffAt = (paths, next, last) =>
   next !== last &&
   (!last || paths.some(path => checkAt(path, next) !== checkAt(path, last)));
 
-export const deps = deps => ({ deps: Array.isArray(deps[0]) ? deps[0] : deps });
+export const createModifiers = modifiers =>
+  modifiers.map(m => createModifier(m));
 
-export const addModifiers = (mods, map = new Map()) =>
-  mods.reduce((acc, m) => addModifier(m, acc), map);
+export function createModifier() {
+  const args = fromArgs(arguments);
 
-export const addModifier = (mod, map) => {
-  const arr = Array.isArray(mod) ? mod : [mod];
-  return map.set(arr.shift(), deps(arr));
-};
+  // args = [modifier]
+  // args = [ [modifier, dep1,dep2] ]
+  // args = [ [modifier, [dep1,dep2] ] ]
+
+  const f = Array.isArray(args[0]) ? args[0] : [args[0]];
+  const mod = f.shift();
+  const deps = Array.isArray(f[0]) ? f[0] : f;
+  let last;
+  const arr = [
+    context => {
+      const r = !last || !deps.length || shouldRun(deps, context, last);
+      if (r) arr[1] = mod(context);
+      last = context;
+      return r;
+    },
+  ];
+  return arr;
+}

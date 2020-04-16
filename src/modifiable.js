@@ -1,80 +1,55 @@
-import {
-  patch,
-  shouldRun,
-  identity,
-  deps,
-  addModifiers,
-  subscribe,
-  fromArgs,
-} from './utils';
+import { patch, identity, createModifiers, createModifier } from './utils';
 
 export default (state, options = {}) => {
-  const modifiers = addModifiers(options.modifiers || []);
-
+  const newModifiers = createModifiers(options.modifiers || []);
   const subscribers = new Set();
 
   // state variables
   let modified = state;
   let context = options.context || {};
-  let lastContext;
 
   const update = () => {
-    // apply all modifier fns sequentially against original state
-    const values = [];
-    modifiers.forEach(v => values.push(v));
-    modified = values.reduce((acc, { fn }) => fn(acc), state);
+    modified = newModifiers.reduce((acc, m) => m[1](acc), state);
 
     // notify subscribers
     subscribers.forEach(s => s(modified));
-    return true;
   };
 
   const setContext = next => ((context = patch(next, context)), run());
 
   const getState = () => modified;
 
-  const run = () => {
-    const toRun = [];
-    modifiers.forEach(
-      (v, fn) => shouldRun(v.deps, context, lastContext) && toRun.push([fn, v])
-    );
-    toRun.forEach(a => (a[1].fn = a[0](context, setContext, getState)));
-    lastContext = context;
-    return toRun.length && update();
-  };
+  const run = () =>
+    newModifiers.reduce(
+      (acc, m) => (m[0](context, setContext, getState) ? ++acc : acc),
+      0
+    ) && update();
 
   // run on init
   run();
 
-  const remove = modifier => (modifiers.delete(modifier), update());
-
-  function modify() {
-    const args = fromArgs(arguments);
-    const modifier = args.shift();
-    modifiers.set(
-      modifier,
-      Object.assign(deps(args), {
-        fn: modifier(context, setContext, getState),
-      })
-    );
-    update();
-    return () => remove(modifier);
-  }
+  const remove = modifier => {
+    const i = newModifiers.indexOf(modifier);
+    if (i !== -1) newModifiers.splice(i, 1), update();
+  };
 
   // api
   return {
     setContext,
     getState,
     remove,
-    subscribe() {
-      const memoed = subscribe.apply(null, arguments);
-      memoed(modified);
-      subscribers.add(memoed);
-      return () => subscribers.delete(memoed);
+    subscribe(subscriber) {
+      subscriber(modified);
+      subscribers.add(subscriber);
+      return () => subscribers.delete(subscriber);
     },
-    modify,
+    modify() {
+      const m = createModifier.apply(null, arguments);
+      newModifiers.push(m), run();
+      return () => remove(m);
+    },
     clear: (ctx = identity) => {
-      modifiers.clear();
+      newModifiers.splice(0);
       setContext(ctx) || update();
     },
   };
