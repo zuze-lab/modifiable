@@ -17,12 +17,12 @@ export function select() {
   const mem = fn.memoize || defaultMemoize;
   const deps = Array.isArray(args[0]) ? args[0] : args;
   const real = deps.length ? deps : [identity];
-  const last = [];
+  let last;
   const selector = modified => {
     real.reduce((acc, d, idx) => {
       const val = checkAt(d, modified);
-      if (mem(val, last[idx])) return acc;
-      last[idx] = val;
+      if (last && mem(val, last[idx])) return acc;
+      last ? (last[idx] = val) : (last = [val]);
       return true;
     }, false) && fn.apply(null, last.concat(deps.length ? modified : []));
     // cool
