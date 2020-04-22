@@ -21,7 +21,7 @@ export function select() {
   const selector = modified => {
     real.reduce((acc, d, idx) => {
       const val = checkAt(d, modified);
-      if (last && mem(val, last[idx])) return acc;
+      if (last && last.length >= idx -1 && mem(val, last[idx])) return acc;
       last ? (last[idx] = val) : (last = [val]);
       return true;
     }, false) && fn.apply(null, last.concat(deps.length ? modified : []));
